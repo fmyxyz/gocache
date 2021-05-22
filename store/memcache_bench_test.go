@@ -12,9 +12,7 @@ import (
 func BenchmarkMemcacheSet(b *testing.B) {
 	store := NewMemcache(
 		memcache.New("127.0.0.1:11211"),
-		&Options{
-			Expiration: 100 * time.Second,
-		},
+		Expiration(100*time.Second),
 	)
 
 	for k := 0.; k <= 10; k++ {
@@ -24,9 +22,7 @@ func BenchmarkMemcacheSet(b *testing.B) {
 				key := fmt.Sprintf("test-%d", n)
 				value := []byte(fmt.Sprintf("value-%d", n))
 
-				store.Set(key, value, &Options{
-					Tags: []string{fmt.Sprintf("tag-%d", n)},
-				})
+				store.Set(key, value, Tags(fmt.Sprintf("tag-%d", n)))
 			}
 		})
 	}
@@ -35,9 +31,7 @@ func BenchmarkMemcacheSet(b *testing.B) {
 func BenchmarkMemcacheGet(b *testing.B) {
 	store := NewMemcache(
 		memcache.New("127.0.0.1:11211"),
-		&Options{
-			Expiration: 100 * time.Second,
-		},
+		Expiration(100*time.Second),
 	)
 
 	key := "test"

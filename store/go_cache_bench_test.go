@@ -11,7 +11,7 @@ import (
 func BenchmarkGoCacheSet(b *testing.B) {
 	client := cache.New(10*time.Second, 30*time.Second)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	for k := 0.; k <= 10; k++ {
 		n := int(math.Pow(2, k))
@@ -20,9 +20,7 @@ func BenchmarkGoCacheSet(b *testing.B) {
 				key := fmt.Sprintf("test-%d", n)
 				value := []byte(fmt.Sprintf("value-%d", n))
 
-				store.Set(key, value, &Options{
-					Tags: []string{fmt.Sprintf("tag-%d", n)},
-				})
+				store.Set(key, value, Tags(fmt.Sprintf("tag-%d", n)))
 			}
 		})
 	}
@@ -31,7 +29,7 @@ func BenchmarkGoCacheSet(b *testing.B) {
 func BenchmarkGoCacheGet(b *testing.B) {
 	client := cache.New(10*time.Second, 30*time.Second)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	key := "test"
 	value := []byte("value")

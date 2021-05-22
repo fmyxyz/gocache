@@ -8,8 +8,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	codec "github.com/eko/gocache/codec"
-	store "github.com/eko/gocache/store"
+	codec "github.com/fmyxyz/gocache/codec"
+	store "github.com/fmyxyz/gocache/store"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -124,29 +124,38 @@ func (mr *MockCodecInterfaceMockRecorder) GetWithTTL(key interface{}) *gomock.Ca
 }
 
 // Invalidate mocks base method.
-func (m *MockCodecInterface) Invalidate(options store.InvalidateOptions) error {
+func (m *MockCodecInterface) Invalidate(options ...store.InvalidateOption) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Invalidate", options)
+	varargs := []interface{}{}
+	for _, a := range options {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Invalidate", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Invalidate indicates an expected call of Invalidate.
-func (mr *MockCodecInterfaceMockRecorder) Invalidate(options interface{}) *gomock.Call {
+func (mr *MockCodecInterfaceMockRecorder) Invalidate(options ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockCodecInterface)(nil).Invalidate), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockCodecInterface)(nil).Invalidate), options...)
 }
 
 // Set mocks base method.
-func (m *MockCodecInterface) Set(key, value interface{}, options *store.Options) error {
+func (m *MockCodecInterface) Set(key, value interface{}, options ...store.Option) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", key, value, options)
+	varargs := []interface{}{key, value}
+	for _, a := range options {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Set", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockCodecInterfaceMockRecorder) Set(key, value, options interface{}) *gomock.Call {
+func (mr *MockCodecInterfaceMockRecorder) Set(key, value interface{}, options ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockCodecInterface)(nil).Set), key, value, options)
+	varargs := append([]interface{}{key, value}, options...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockCodecInterface)(nil).Set), varargs...)
 }

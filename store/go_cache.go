@@ -29,14 +29,15 @@ type GoCacheStore struct {
 }
 
 // NewGoCache creates a new store to GoCache (memory) library instance
-func NewGoCache(client GoCacheClientInterface, options *Options) *GoCacheStore {
-	if options == nil {
-		options = &Options{}
+func NewGoCache(client GoCacheClientInterface, options ...Option) *GoCacheStore {
+	opts := &Options{}
+	for _, option := range options {
+		option(opts)
 	}
 
 	return &GoCacheStore{
 		client:  client,
-		options: options,
+		options: opts,
 	}
 }
 
@@ -63,10 +64,14 @@ func (s *GoCacheStore) GetWithTTL(key interface{}) (interface{}, time.Duration, 
 }
 
 // Set defines data in GoCache memoey cache for given key identifier
-func (s *GoCacheStore) Set(key interface{}, value interface{}, options *Options) error {
+func (s *GoCacheStore) Set(key interface{}, value interface{}, opts ...Option) error {
 
-	if options == nil {
+	options := &Options{}
+	if len(opts) == 0 {
 		options = s.options
+	}
+	for _, opt := range opts {
+		opt(options)
 	}
 
 	s.client.Set(key.(string), value, options.ExpirationValue())
@@ -108,7 +113,7 @@ func (s *GoCacheStore) Delete(key interface{}) error {
 	return nil
 }
 
-// Invalidate invalidates some cache data in GoCache memoey cache for given options
+// Invalidate invalidates some cache data in GoCache memoey cache for given Options
 func (s *GoCacheStore) Invalidate(options InvalidateOptions) error {
 	if tags := options.TagsValue(); len(tags) > 0 {
 		for _, tag := range tags {

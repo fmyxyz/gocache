@@ -31,14 +31,15 @@ type MemcacheStore struct {
 }
 
 // NewMemcache creates a new store to Memcache instance(s)
-func NewMemcache(client MemcacheClientInterface, options *Options) *MemcacheStore {
-	if options == nil {
-		options = &Options{}
+func NewMemcache(client MemcacheClientInterface, options ...Option) *MemcacheStore {
+	opts := &Options{}
+	for _, option := range options {
+		option(opts)
 	}
 
 	return &MemcacheStore{
 		client:  client,
-		options: options,
+		options: opts,
 	}
 }
 
@@ -69,9 +70,13 @@ func (s *MemcacheStore) GetWithTTL(key interface{}) (interface{}, time.Duration,
 }
 
 // Set defines data in Memcache for given key identifier
-func (s *MemcacheStore) Set(key interface{}, value interface{}, options *Options) error {
-	if options == nil {
+func (s *MemcacheStore) Set(key interface{}, value interface{}, opts ...Option) error {
+	options := &Options{}
+	if len(opts) == 0 {
 		options = s.options
+	}
+	for _, opt := range opts {
+		opt(options)
 	}
 
 	item := &memcache.Item{
@@ -115,9 +120,7 @@ func (s *MemcacheStore) setTags(key interface{}, tags []string) {
 			cacheKeys = append(cacheKeys, key.(string))
 		}
 
-		s.Set(tagKey, []byte(strings.Join(cacheKeys, ",")), &Options{
-			Expiration: 720 * time.Hour,
-		})
+		s.Set(tagKey, []byte(strings.Join(cacheKeys, ",")), Expiration(720*time.Hour))
 	}
 }
 
@@ -126,7 +129,7 @@ func (s *MemcacheStore) Delete(key interface{}) error {
 	return s.client.Delete(key.(string))
 }
 
-// Invalidate invalidates some cache data in Redis for given options
+// Invalidate invalidates some cache data in Redis for given Options
 func (s *MemcacheStore) Invalidate(options InvalidateOptions) error {
 	if tags := options.TagsValue(); len(tags) > 0 {
 		for _, tag := range tags {

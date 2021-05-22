@@ -29,14 +29,15 @@ type BigcacheStore struct {
 }
 
 // NewBigcache creates a new store to Bigcache instance(s)
-func NewBigcache(client BigcacheClientInterface, options *Options) *BigcacheStore {
-	if options == nil {
-		options = &Options{}
+func NewBigcache(client BigcacheClientInterface, options ...Option) *BigcacheStore {
+	opts := &Options{}
+	for _, option := range options {
+		option(opts)
 	}
 
 	return &BigcacheStore{
 		client:  client,
-		options: options,
+		options: opts,
 	}
 }
 
@@ -60,9 +61,13 @@ func (s *BigcacheStore) GetWithTTL(key interface{}) (interface{}, time.Duration,
 }
 
 // Set defines data in Bigcache for given key identifier
-func (s *BigcacheStore) Set(key interface{}, value interface{}, options *Options) error {
-	if options == nil {
+func (s *BigcacheStore) Set(key interface{}, value interface{}, opts ...Option) error {
+	options := &Options{}
+	if len(opts) == 0 {
 		options = s.options
+	}
+	for _, opt := range opts {
+		opt(options)
 	}
 
 	var val []byte
@@ -110,9 +115,7 @@ func (s *BigcacheStore) setTags(key interface{}, tags []string) {
 			cacheKeys = append(cacheKeys, key.(string))
 		}
 
-		s.Set(tagKey, []byte(strings.Join(cacheKeys, ",")), &Options{
-			Expiration: 720 * time.Hour,
-		})
+		s.Set(tagKey, []byte(strings.Join(cacheKeys, ",")), Expiration(720*time.Hour))
 	}
 }
 
@@ -121,7 +124,7 @@ func (s *BigcacheStore) Delete(key interface{}) error {
 	return s.client.Delete(key.(string))
 }
 
-// Invalidate invalidates some cache data in Bigcache for given options
+// Invalidate invalidates some cache data in Bigcache for given Options
 func (s *BigcacheStore) Invalidate(options InvalidateOptions) error {
 	if tags := options.TagsValue(); len(tags) > 0 {
 		for _, tag := range tags {

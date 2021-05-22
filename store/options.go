@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Options represents the cache store available options
+// Options represents the cache store available Options
 type Options struct {
 	// Cost corresponds to the memory capacity used by the item when setting a value
 	// Actually it seems to be used by Ristretto library only
@@ -34,6 +34,32 @@ func (o Options) ExpirationValue() time.Duration {
 // TagsValue returns the tags option value
 func (o Options) TagsValue() []string {
 	return o.Tags
+}
+
+type Option func(o *Options)
+
+func Cost(cost int64) Option {
+	return func(o *Options) {
+		o.Cost = cost
+	}
+}
+
+func Expiration(expiration time.Duration) Option {
+	return func(o *Options) {
+		o.Expiration = expiration
+	}
+}
+
+func Tags(tags ...string) Option {
+	return func(o *Options) {
+		o.Tags = tags
+	}
+}
+
+func Ctx(ctx context.Context) Option {
+	return func(o *Options) {
+		o.Ctx = ctx
+	}
 }
 
 // CtxValue returns the ctx option value

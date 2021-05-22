@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/eko/gocache/store"
+	"github.com/fmyxyz/gocache/store"
 )
 
 const (
@@ -45,7 +45,7 @@ func (c *ChainCache) setter() {
 				break
 			}
 
-			cache.Set(item.key, item.value, &store.Options{Expiration: item.ttl})
+			cache.Set(item.key, item.value, store.Expiration(item.ttl))
 		}
 	}
 }
@@ -70,9 +70,9 @@ func (c *ChainCache) Get(key interface{}) (interface{}, error) {
 }
 
 // Set sets a value in available caches
-func (c *ChainCache) Set(key, object interface{}, options *store.Options) error {
+func (c *ChainCache) Set(key, object interface{}, options ...store.Option) error {
 	for _, cache := range c.caches {
-		err := cache.Set(key, object, options)
+		err := cache.Set(key, object, options...)
 		if err != nil {
 			storeType := cache.GetCodec().GetStore().GetType()
 			return fmt.Errorf("Unable to set item into cache with store '%s': %v", storeType, err)
@@ -92,9 +92,9 @@ func (c *ChainCache) Delete(key interface{}) error {
 }
 
 // Invalidate invalidates cache item from given options
-func (c *ChainCache) Invalidate(options store.InvalidateOptions) error {
+func (c *ChainCache) Invalidate(options ...store.InvalidateOption) error {
 	for _, cache := range c.caches {
-		cache.Invalidate(options)
+		cache.Invalidate(options...)
 	}
 
 	return nil

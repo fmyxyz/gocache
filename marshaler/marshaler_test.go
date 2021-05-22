@@ -2,11 +2,12 @@ package marshaler
 
 import (
 	"errors"
+	"github.com/fmyxyz/gocache/test/mocks"
 	"testing"
 	"time"
 
-	"github.com/eko/gocache/store"
-	mocksCache "github.com/eko/gocache/test/mocks/cache"
+	"github.com/fmyxyz/gocache/store"
+	mocksCache "github.com/fmyxyz/gocache/test/mocks/cache"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmihailenco/msgpack"
@@ -132,17 +133,15 @@ func TestSetWhenStruct(t *testing.T) {
 		Hello: "world",
 	}
 
-	options := &store.Options{
-		Expiration: 5 * time.Second,
-	}
+	option := store.Expiration(5 * time.Second)
 
 	cache := mocksCache.NewMockCacheInterface(ctrl)
-	cache.EXPECT().Set("my-key", []byte{0x81, 0xa5, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xa5, 0x77, 0x6f, 0x72, 0x6c, 0x64}, options).Return(nil)
+	cache.EXPECT().Set("my-key", []byte{0x81, 0xa5, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xa5, 0x77, 0x6f, 0x72, 0x6c, 0x64}, mocks.FuncEq(option)).Return(nil)
 
 	marshaler := New(cache)
 
 	// When
-	err := marshaler.Set("my-key", cacheValue, options)
+	err := marshaler.Set("my-key", cacheValue, option)
 
 	// Then
 	assert.Nil(t, err)
@@ -155,17 +154,15 @@ func TestSetWhenString(t *testing.T) {
 
 	cacheValue := "test"
 
-	options := &store.Options{
-		Expiration: 5 * time.Second,
-	}
+	option := store.Expiration(5 * time.Second)
 
 	cache := mocksCache.NewMockCacheInterface(ctrl)
-	cache.EXPECT().Set("my-key", []byte{0xa4, 0x74, 0x65, 0x73, 0x74}, options).Return(nil)
+	cache.EXPECT().Set("my-key", []byte{0xa4, 0x74, 0x65, 0x73, 0x74}, mocks.FuncEq(option)).Return(nil)
 
 	marshaler := New(cache)
 
 	// When
-	err := marshaler.Set("my-key", cacheValue, options)
+	err := marshaler.Set("my-key", cacheValue, option)
 
 	// Then
 	assert.Nil(t, err)
@@ -178,19 +175,17 @@ func TestSetWhenError(t *testing.T) {
 
 	cacheValue := "test"
 
-	options := &store.Options{
-		Expiration: 5 * time.Second,
-	}
+	option := store.Expiration(5 * time.Second)
 
 	expectedErr := errors.New("An unexpected error occurred")
 
 	cache := mocksCache.NewMockCacheInterface(ctrl)
-	cache.EXPECT().Set("my-key", []byte{0xa4, 0x74, 0x65, 0x73, 0x74}, options).Return(expectedErr)
+	cache.EXPECT().Set("my-key", []byte{0xa4, 0x74, 0x65, 0x73, 0x74}, mocks.FuncEq(option)).Return(expectedErr)
 
 	marshaler := New(cache)
 
 	// When
-	err := marshaler.Set("my-key", cacheValue, options)
+	err := marshaler.Set("my-key", cacheValue, option)
 
 	// Then
 	assert.Equal(t, expectedErr, err)
@@ -237,17 +232,14 @@ func TestInvalidate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
-
 	cache := mocksCache.NewMockCacheInterface(ctrl)
-	cache.EXPECT().Invalidate(options).Return(nil)
+	option := store.InvalidateTags("tag1")
+	cache.EXPECT().Invalidate(mocks.FuncEq(option)).Return(nil)
 
 	marshaler := New(cache)
 
 	// When
-	err := marshaler.Invalidate(options)
+	err := marshaler.Invalidate(option)
 
 	// Then
 	assert.Nil(t, err)
@@ -258,19 +250,16 @@ func TestInvalidatingWhenError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
-
 	expectedErr := errors.New("Unexpected error when invalidating data")
 
 	cache := mocksCache.NewMockCacheInterface(ctrl)
-	cache.EXPECT().Invalidate(options).Return(expectedErr)
+	option := store.InvalidateTags("tag1")
+	cache.EXPECT().Invalidate(mocks.FuncEq((option))).Return(expectedErr)
 
 	marshaler := New(cache)
 
 	// When
-	err := marshaler.Invalidate(options)
+	err := marshaler.Invalidate(option)
 
 	// Then
 	assert.Equal(t, expectedErr, err)

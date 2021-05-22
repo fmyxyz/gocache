@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	mocksStore "github.com/eko/gocache/test/mocks/store/clients"
+	mocksStore "github.com/fmyxyz/gocache/test/mocks/store/clients"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,17 +16,13 @@ func TestNewGoCache(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
-	options := &Options{
-		Cost: 8,
-	}
 
 	// When
-	store := NewGoCache(client, options)
+	store := NewGoCache(client)
 
 	// Then
 	assert.IsType(t, new(GoCacheStore), store)
 	assert.Equal(t, client, store.client)
-	assert.Equal(t, options, store.options)
 }
 
 func TestGoCacheGet(t *testing.T) {
@@ -40,7 +36,7 @@ func TestGoCacheGet(t *testing.T) {
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().Get(cacheKey).Return(cacheValue, true)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
 	value, err := store.Get(cacheKey)
@@ -60,7 +56,7 @@ func TestGoCacheGetWhenError(t *testing.T) {
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().Get(cacheKey).Return(nil, false)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
 	value, err := store.Get(cacheKey)
@@ -81,7 +77,7 @@ func TestGoCacheGetWithTTL(t *testing.T) {
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().GetWithExpiration(cacheKey).Return(cacheValue, time.Now(), true)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
 	value, ttl, err := store.GetWithTTL(cacheKey)
@@ -102,7 +98,7 @@ func TestGoCacheGetWithTTLWhenError(t *testing.T) {
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().GetWithExpiration(cacheKey).Return(nil, time.Now(), false)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
 	value, ttl, err := store.GetWithTTL(cacheKey)
@@ -120,17 +116,14 @@ func TestGoCacheSet(t *testing.T) {
 
 	cacheKey := "my-key"
 	cacheValue := "my-cache-value"
-	options := &Options{}
 
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().Set(cacheKey, cacheValue, 0*time.Second)
 
-	store := NewGoCache(client, options)
+	store := NewGoCache(client)
 
 	// When
-	err := store.Set(cacheKey, cacheValue, &Options{
-		Cost: 4,
-	})
+	err := store.Set(cacheKey, cacheValue)
 
 	// Then
 	assert.Nil(t, err)
@@ -143,15 +136,14 @@ func TestGoCacheSetWhenNoOptionsGiven(t *testing.T) {
 
 	cacheKey := "my-key"
 	cacheValue := "my-cache-value"
-	options := &Options{}
 
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().Set(cacheKey, cacheValue, 0*time.Second)
 
-	store := NewGoCache(client, options)
+	store := NewGoCache(client)
 
 	// When
-	err := store.Set(cacheKey, cacheValue, nil)
+	err := store.Set(cacheKey, cacheValue)
 
 	// Then
 	assert.Nil(t, err)
@@ -171,10 +163,10 @@ func TestGoCacheSetWithTags(t *testing.T) {
 	var cacheKeys = map[string]struct{}{"my-key": {}}
 	client.EXPECT().Set("gocache_tag_tag1", cacheKeys, 720*time.Hour)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
-	err := store.Set(cacheKey, cacheValue, &Options{Tags: []string{"tag1"}})
+	err := store.Set(cacheKey, cacheValue, Tags("tag1"))
 
 	// Then
 	assert.Nil(t, err)
@@ -194,10 +186,10 @@ func TestGoCacheSetWithTagsWhenAlreadyInserted(t *testing.T) {
 	var cacheKeys = map[string]struct{}{"my-key": {}, "a-second-key": {}}
 	client.EXPECT().Get("gocache_tag_tag1").Return(cacheKeys, true)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
-	err := store.Set(cacheKey, cacheValue, &Options{Tags: []string{"tag1"}})
+	err := store.Set(cacheKey, cacheValue, Tags("tag1"))
 
 	// Then
 	assert.Nil(t, err)
@@ -213,7 +205,7 @@ func TestGoCacheDelete(t *testing.T) {
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().Delete(cacheKey)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
 	err := store.Delete(cacheKey)
@@ -238,7 +230,7 @@ func TestGoCacheInvalidate(t *testing.T) {
 	client.EXPECT().Delete("a23fdf987h2svc23")
 	client.EXPECT().Delete("jHG2372x38hf74")
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
 	err := store.Invalidate(options)
@@ -261,7 +253,7 @@ func TestGoCacheInvalidateWhenError(t *testing.T) {
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().Get("gocache_tag_tag1").Return(cacheKeys, false)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
 	err := store.Invalidate(options)
@@ -278,7 +270,7 @@ func TestGoCacheClear(t *testing.T) {
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 	client.EXPECT().Flush()
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When
 	err := store.Clear()
@@ -294,7 +286,7 @@ func TestGoCacheGetType(t *testing.T) {
 
 	client := mocksStore.NewMockGoCacheClientInterface(ctrl)
 
-	store := NewGoCache(client, nil)
+	store := NewGoCache(client)
 
 	// When - Then
 	assert.Equal(t, GoCacheType, store.GetType())

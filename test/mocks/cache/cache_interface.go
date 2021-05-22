@@ -8,8 +8,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	codec "github.com/eko/gocache/codec"
-	store "github.com/eko/gocache/store"
+	codec "github.com/fmyxyz/gocache/codec"
+	store "github.com/fmyxyz/gocache/store"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -94,31 +94,40 @@ func (mr *MockCacheInterfaceMockRecorder) GetType() *gomock.Call {
 }
 
 // Invalidate mocks base method.
-func (m *MockCacheInterface) Invalidate(options store.InvalidateOptions) error {
+func (m *MockCacheInterface) Invalidate(options ...store.InvalidateOption) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Invalidate", options)
+	varargs := []interface{}{}
+	for _, a := range options {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Invalidate", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Invalidate indicates an expected call of Invalidate.
-func (mr *MockCacheInterfaceMockRecorder) Invalidate(options interface{}) *gomock.Call {
+func (mr *MockCacheInterfaceMockRecorder) Invalidate(options ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockCacheInterface)(nil).Invalidate), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockCacheInterface)(nil).Invalidate), options...)
 }
 
 // Set mocks base method.
-func (m *MockCacheInterface) Set(key, object interface{}, options *store.Options) error {
+func (m *MockCacheInterface) Set(key, object interface{}, options ...store.Option) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", key, object, options)
+	varargs := []interface{}{key, object}
+	for _, a := range options {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Set", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockCacheInterfaceMockRecorder) Set(key, object, options interface{}) *gomock.Call {
+func (mr *MockCacheInterfaceMockRecorder) Set(key, object interface{}, options ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockCacheInterface)(nil).Set), key, object, options)
+	varargs := append([]interface{}{key, object}, options...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockCacheInterface)(nil).Set), varargs...)
 }
 
 // MockSetterCacheInterface is a mock of SetterCacheInterface interface.
@@ -232,29 +241,38 @@ func (mr *MockSetterCacheInterfaceMockRecorder) GetWithTTL(key interface{}) *gom
 }
 
 // Invalidate mocks base method.
-func (m *MockSetterCacheInterface) Invalidate(options store.InvalidateOptions) error {
+func (m *MockSetterCacheInterface) Invalidate(options ...store.InvalidateOption) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Invalidate", options)
+	varargs := []interface{}{}
+	for _, a := range options {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Invalidate", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Invalidate indicates an expected call of Invalidate.
-func (mr *MockSetterCacheInterfaceMockRecorder) Invalidate(options interface{}) *gomock.Call {
+func (mr *MockSetterCacheInterfaceMockRecorder) Invalidate(options ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockSetterCacheInterface)(nil).Invalidate), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invalidate", reflect.TypeOf((*MockSetterCacheInterface)(nil).Invalidate), options...)
 }
 
 // Set mocks base method.
-func (m *MockSetterCacheInterface) Set(key, object interface{}, options *store.Options) error {
+func (m *MockSetterCacheInterface) Set(key, object interface{}, options ...store.Option) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", key, object, options)
+	varargs := []interface{}{key, object}
+	for _, a := range options {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Set", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockSetterCacheInterfaceMockRecorder) Set(key, object, options interface{}) *gomock.Call {
+func (mr *MockSetterCacheInterfaceMockRecorder) Set(key, object interface{}, options ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockSetterCacheInterface)(nil).Set), key, object, options)
+	varargs := append([]interface{}{key, object}, options...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockSetterCacheInterface)(nil).Set), varargs...)
 }

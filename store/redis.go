@@ -34,17 +34,18 @@ type RedisStore struct {
 }
 
 // NewRedis creates a new store to Redis instance(s)
-func NewRedis(client RedisClientInterface, options *Options) *RedisStore {
-	if options == nil {
-		options = &Options{}
+func NewRedis(client RedisClientInterface, options ...Option) *RedisStore {
+	opts := &Options{}
+	for _, option := range options {
+		option(opts)
 	}
-	if options.Ctx == nil {
-		options.Ctx = context.Background()
+	if opts.Ctx == nil {
+		opts.Ctx = context.Background()
 	}
 
 	return &RedisStore{
 		client:  client,
-		options: options,
+		options: opts,
 	}
 }
 
@@ -69,9 +70,13 @@ func (s *RedisStore) GetWithTTL(key interface{}) (interface{}, time.Duration, er
 }
 
 // Set defines data in Redis for given key identifier
-func (s *RedisStore) Set(key interface{}, value interface{}, options *Options) error {
-	if options == nil {
+func (s *RedisStore) Set(key interface{}, value interface{}, opts ...Option) error {
+	options := &Options{}
+	if len(opts) == 0 {
 		options = s.options
+	}
+	for _, opt := range opts {
+		opt(options)
 	}
 	if options.Ctx == nil {
 		options.Ctx = context.Background()
@@ -103,7 +108,7 @@ func (s *RedisStore) Delete(key interface{}) error {
 	return err
 }
 
-// Invalidate invalidates some cache data in Redis for given options
+// Invalidate invalidates some cache data in Redis for given Options
 func (s *RedisStore) Invalidate(options InvalidateOptions) error {
 	if tags := options.TagsValue(); len(tags) > 0 {
 		for _, tag := range tags {

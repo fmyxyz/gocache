@@ -33,14 +33,15 @@ type FreecacheStore struct {
 }
 
 // NewFreecache creates a new store to freecache instance(s)
-func NewFreecache(client FreecacheClientInterface, options *Options) *FreecacheStore {
-	if options == nil {
-		options = &Options{}
+func NewFreecache(client FreecacheClientInterface, options ...Option) *FreecacheStore {
+	opts := &Options{}
+	for _, option := range options {
+		option(opts)
 	}
 
 	return &FreecacheStore{
 		client:  client,
-		options: options,
+		options: opts,
 	}
 }
 
@@ -82,13 +83,17 @@ func (f *FreecacheStore) GetWithTTL(key interface{}) (interface{}, time.Duration
 // If the key is larger than 65535 or value is larger than 1/1024 of the cache size,
 // the entry will not be written to the cache. expireSeconds <= 0 means no expire,
 // but it can be evicted when cache is full.
-func (f *FreecacheStore) Set(key interface{}, value interface{}, options *Options) error {
+func (f *FreecacheStore) Set(key interface{}, value interface{}, opts ...Option) error {
 	var err error
 	var val []byte
 
-	// Using default options set during cache initialization
-	if options == nil {
+	// Using default Options set during cache initialization
+	options := &Options{}
+	if len(opts) == 0 {
 		options = f.options
+	}
+	for _, opt := range opts {
+		opt(options)
 	}
 
 	//type check for value, as freecache only supports value of type []byte
@@ -129,7 +134,7 @@ func (f *FreecacheStore) setTags(key interface{}, tags []string) {
 			cacheKeys = append(cacheKeys, key.(string))
 		}
 
-		f.Set(tagKey, []byte(strings.Join(cacheKeys, ",")), &Options{Expiration: 720 * time.Hour})
+		f.Set(tagKey, []byte(strings.Join(cacheKeys, ",")), Expiration(720*time.Hour))
 	}
 }
 
@@ -155,7 +160,7 @@ func (f *FreecacheStore) Delete(key interface{}) error {
 
 }
 
-// Invalidate invalidates some cache data in freecache for given options
+// Invalidate invalidates some cache data in freecache for given Options
 func (f *FreecacheStore) Invalidate(options InvalidateOptions) error {
 	if tags := options.TagsValue(); len(tags) > 0 {
 		for _, tag := range tags {

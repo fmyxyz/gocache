@@ -11,10 +11,8 @@ import (
 
 func BenchmarkFreecacheSet(b *testing.B) {
 	c := freecache.NewCache(1000)
-	opts := &Options{
-		Expiration: 10 * time.Second,
-	}
-	freecacheStore := NewFreecache(c, opts)
+
+	freecacheStore := NewFreecache(c, Expiration(10*time.Second))
 
 	for k := 0.; k <= 10; k++ {
 		n := int(math.Pow(2, k))
@@ -31,10 +29,8 @@ func BenchmarkFreecacheSet(b *testing.B) {
 
 func BenchmarkFreecacheGet(b *testing.B) {
 	c := freecache.NewCache(1000)
-	opts := &Options{
-		Expiration: 10 * time.Second,
-	}
-	freecacheStore := NewFreecache(c, opts)
+
+	freecacheStore := NewFreecache(c, Expiration(10*time.Second))
 	key := "test"
 	value := []byte("value")
 

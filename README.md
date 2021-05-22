@@ -335,9 +335,9 @@ Cache respect the following interface so you can write your own (proprietary?) c
 ```go
 type CacheInterface interface {
 	Get(key interface{}) (interface{}, error)
-	Set(key, object interface{}, options *store.Options) error
+	Set(key, object interface{}, options ...store.Option) error
 	Delete(key interface{}) error
-	Invalidate(options store.InvalidateOptions) error
+	Invalidate(options ...store.InvalidateOption) error
 	Clear() error
 	GetType() string
 }

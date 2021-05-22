@@ -2,11 +2,12 @@ package cache
 
 import (
 	"errors"
+	"github.com/fmyxyz/gocache/test/mocks"
 	"testing"
 	"time"
 
-	"github.com/eko/gocache/store"
-	mocksCache "github.com/eko/gocache/test/mocks/cache"
+	"github.com/fmyxyz/gocache/store"
+	mocksCache "github.com/fmyxyz/gocache/test/mocks/cache"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -44,7 +45,7 @@ func TestLoadableGetWhenAlreadyInCache(t *testing.T) {
 	}
 
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Get("my-key").Return(cacheValue, nil)
+	cache1.EXPECT().Get("my-key").Return(cacheValue)
 
 	loadFunc := func(key interface{}) (interface{}, error) {
 		return nil, errors.New("Should not be called")
@@ -97,7 +98,7 @@ func TestLoadableGetWhenAvailableInLoadFunc(t *testing.T) {
 	// Cache 1
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
 	cache1.EXPECT().Get("my-key").Return(nil, errors.New("Unable to find in cache 1"))
-	cache1.EXPECT().Set("my-key", cacheValue, (*store.Options)(nil)).AnyTimes().Return(nil)
+	cache1.EXPECT().Set("my-key", cacheValue, mocks.FuncEq((store.Option)(nil))).AnyTimes().Return(nil)
 
 	loadFunc := func(key interface{}) (interface{}, error) {
 		return cacheValue, nil
@@ -167,12 +168,9 @@ func TestLoadableInvalidate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
-
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Invalidate(options).Return(nil)
+	option := store.InvalidateTags("tag1")
+	cache1.EXPECT().Invalidate(mocks.FuncEq(option)).Return(nil)
 
 	loadFunc := func(key interface{}) (interface{}, error) {
 		return "a value", nil
@@ -181,7 +179,7 @@ func TestLoadableInvalidate(t *testing.T) {
 	cache := NewLoadable(loadFunc, cache1)
 
 	// When
-	err := cache.Invalidate(options)
+	err := cache.Invalidate(option)
 
 	// Then
 	assert.Nil(t, err)
@@ -192,14 +190,11 @@ func TestLoadableInvalidateWhenError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
-
 	expectedErr := errors.New("Unexpected error when invalidating data")
 
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Invalidate(options).Return(expectedErr)
+	option := store.InvalidateTags("tag1")
+	cache1.EXPECT().Invalidate(mocks.FuncEq(option)).Return(expectedErr)
 
 	loadFunc := func(key interface{}) (interface{}, error) {
 		return "a value", nil
@@ -208,7 +203,7 @@ func TestLoadableInvalidateWhenError(t *testing.T) {
 	cache := NewLoadable(loadFunc, cache1)
 
 	// When
-	err := cache.Invalidate(options)
+	err := cache.Invalidate(option)
 
 	// Then
 	assert.Equal(t, expectedErr, err)

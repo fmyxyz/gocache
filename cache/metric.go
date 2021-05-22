@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"github.com/eko/gocache/metrics"
-	"github.com/eko/gocache/store"
+	"github.com/fmyxyz/gocache/metrics"
+	"github.com/fmyxyz/gocache/store"
 )
 
 const (
@@ -34,8 +34,8 @@ func (c *MetricCache) Get(key interface{}) (interface{}, error) {
 }
 
 // Set sets a value from the cache
-func (c *MetricCache) Set(key, object interface{}, options *store.Options) error {
-	return c.cache.Set(key, object, options)
+func (c *MetricCache) Set(key, object interface{}, options ...store.Option) error {
+	return c.cache.Set(key, object, options...)
 }
 
 // Delete removes a value from the cache
@@ -44,8 +44,8 @@ func (c *MetricCache) Delete(key interface{}) error {
 }
 
 // Invalidate invalidates cache item from given options
-func (c *MetricCache) Invalidate(options store.InvalidateOptions) error {
-	return c.cache.Invalidate(options)
+func (c *MetricCache) Invalidate(options ...store.InvalidateOption) error {
+	return c.cache.Invalidate(options...)
 }
 
 // Clear resets all cache data

@@ -34,17 +34,18 @@ type RedisClusterStore struct {
 }
 
 // NewRedis creates a new store to Redis instance(s)
-func NewRedisCluster(client RedisClusterClientInterface, options *Options) *RedisClusterStore {
-	if options == nil {
-		options = &Options{}
+func NewRedisCluster(client RedisClusterClientInterface, options ...Option) *RedisClusterStore {
+	opts := &Options{}
+	for _, option := range options {
+		option(opts)
 	}
-	if options.Ctx == nil {
-		options.Ctx = context.Background()
+	if opts.Ctx == nil {
+		opts.Ctx = context.Background()
 	}
 
 	return &RedisClusterStore{
 		clusclient: client,
-		options:    options,
+		options:    opts,
 	}
 }
 
@@ -69,9 +70,13 @@ func (s *RedisClusterStore) GetWithTTL(key interface{}) (interface{}, time.Durat
 }
 
 // Set defines data in Redis for given key identifier
-func (s *RedisClusterStore) Set(key interface{}, value interface{}, options *Options) error {
-	if options == nil {
+func (s *RedisClusterStore) Set(key interface{}, value interface{}, opts ...Option) error {
+	options := &Options{}
+	if len(opts) == 0 {
 		options = s.options
+	}
+	for _, opt := range opts {
+		opt(options)
 	}
 	if options.Ctx == nil {
 		options.Ctx = context.Background()
@@ -103,7 +108,7 @@ func (s *RedisClusterStore) Delete(key interface{}) error {
 	return err
 }
 
-// Invalidate invalidates some cache data in Redis for given options
+// Invalidate invalidates some cache data in Redis for given Options
 func (s *RedisClusterStore) Invalidate(options InvalidateOptions) error {
 	if tags := options.TagsValue(); len(tags) > 0 {
 		for _, tag := range tags {

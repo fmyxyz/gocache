@@ -2,11 +2,12 @@ package codec
 
 import (
 	"errors"
+	"github.com/fmyxyz/gocache/test/mocks"
 	"testing"
 	"time"
 
-	"github.com/eko/gocache/store"
-	mocksStore "github.com/eko/gocache/test/mocks/store"
+	"github.com/fmyxyz/gocache/store"
+	mocksStore "github.com/fmyxyz/gocache/test/mocks/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,7 +38,7 @@ func TestGetWhenHit(t *testing.T) {
 	}
 
 	store := mocksStore.NewMockStoreInterface(ctrl)
-	store.EXPECT().Get("my-key").Return(cacheValue, nil)
+	store.EXPECT().Get("my-key").Return(cacheValue)
 
 	codec := New(store)
 
@@ -170,17 +171,14 @@ func TestSetWhenSuccess(t *testing.T) {
 		Hello: "world",
 	}
 
-	options := &store.Options{
-		Expiration: 5 * time.Second,
-	}
+	s := mocksStore.NewMockStoreInterface(ctrl)
+	option := store.Expiration(5 * time.Second)
+	s.EXPECT().Set("my-key", cacheValue, mocks.FuncEq(option)).Return(nil)
 
-	store := mocksStore.NewMockStoreInterface(ctrl)
-	store.EXPECT().Set("my-key", cacheValue, options).Return(nil)
-
-	codec := New(store)
+	codec := New(s)
 
 	// When
-	err := codec.Set("my-key", cacheValue, options)
+	err := codec.Set("my-key", cacheValue, option)
 
 	// Then
 	assert.Nil(t, err)
@@ -208,19 +206,17 @@ func TestSetWhenError(t *testing.T) {
 		Hello: "world",
 	}
 
-	options := &store.Options{
-		Expiration: 5 * time.Second,
-	}
+	option := store.Expiration(5 * time.Second)
 
 	expectedErr := errors.New("Unable to set value in store")
 
-	store := mocksStore.NewMockStoreInterface(ctrl)
-	store.EXPECT().Set("my-key", cacheValue, options).Return(expectedErr)
+	s := mocksStore.NewMockStoreInterface(ctrl)
+	s.EXPECT().Set("my-key", cacheValue, mocks.FuncEq(option)).Return(expectedErr)
 
-	codec := New(store)
+	codec := New(s)
 
 	// When
-	err := codec.Set("my-key", cacheValue, options)
+	err := codec.Set("my-key", cacheValue, option)
 
 	// Then
 	assert.Equal(t, expectedErr, err)
@@ -300,17 +296,14 @@ func TestInvalidateWhenSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
+	s := mocksStore.NewMockStoreInterface(ctrl)
+	option := store.InvalidateTags("tag1")
+	s.EXPECT().Invalidate(mocks.FuncEq(option)).Return(nil)
 
-	store := mocksStore.NewMockStoreInterface(ctrl)
-	store.EXPECT().Invalidate(options).Return(nil)
-
-	codec := New(store)
+	codec := New(s)
 
 	// When
-	err := codec.Invalidate(options)
+	err := codec.Invalidate(option)
 
 	// Then
 	assert.Nil(t, err)
@@ -332,19 +325,16 @@ func TestInvalidateWhenError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
-
 	expectedErr := errors.New("Unexpected error when invalidating data")
 
-	store := mocksStore.NewMockStoreInterface(ctrl)
-	store.EXPECT().Invalidate(options).Return(expectedErr)
+	s := mocksStore.NewMockStoreInterface(ctrl)
+	option := store.InvalidateTags("tag1")
+	s.EXPECT().Invalidate(mocks.FuncEq(option)).Return(expectedErr)
 
-	codec := New(store)
+	codec := New(s)
 
 	// When
-	err := codec.Invalidate(options)
+	err := codec.Invalidate(option)
 
 	// Then
 	assert.Equal(t, expectedErr, err)

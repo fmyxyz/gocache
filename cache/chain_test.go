@@ -3,13 +3,14 @@ package cache
 import (
 	"errors"
 	"fmt"
+	"github.com/fmyxyz/gocache/test/mocks"
 	"testing"
 	"time"
 
-	"github.com/eko/gocache/store"
-	mocksCache "github.com/eko/gocache/test/mocks/cache"
-	mocksCodec "github.com/eko/gocache/test/mocks/codec"
-	mocksStore "github.com/eko/gocache/test/mocks/store"
+	"github.com/fmyxyz/gocache/store"
+	mocksCache "github.com/fmyxyz/gocache/test/mocks/cache"
+	mocksCodec "github.com/fmyxyz/gocache/test/mocks/codec"
+	mocksStore "github.com/fmyxyz/gocache/test/mocks/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -103,8 +104,6 @@ func TestChainGetWhenAvailableInSecondCache(t *testing.T) {
 		Hello: "world",
 	}
 
-	options := &store.Options{Expiration: 0 * time.Second}
-
 	// Cache 1
 	store1 := mocksStore.NewMockStoreInterface(ctrl)
 	store1.EXPECT().GetType().AnyTimes().Return("store1")
@@ -116,7 +115,8 @@ func TestChainGetWhenAvailableInSecondCache(t *testing.T) {
 	cache1.EXPECT().GetCodec().AnyTimes().Return(codec1)
 	cache1.EXPECT().GetWithTTL("my-key").Return(nil, 0*time.Second,
 		errors.New("Unable to find in cache 1"))
-	cache1.EXPECT().Set("my-key", cacheValue, options).AnyTimes().Return(nil)
+	option := store.Expiration(0 * time.Second)
+	cache1.EXPECT().Set("my-key", cacheValue, mocks.FuncEq(option)).AnyTimes().Return(nil)
 
 	// Cache 2
 	store2 := mocksStore.NewMockStoreInterface(ctrl)
@@ -195,20 +195,18 @@ func TestChainSet(t *testing.T) {
 		Hello: "world",
 	}
 
-	options := &store.Options{}
-
 	// Cache 1
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Set("my-key", cacheValue, options).Return(nil)
+	cache1.EXPECT().Set("my-key", cacheValue).Return(nil)
 
 	// Cache 2
 	cache2 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache2.EXPECT().Set("my-key", cacheValue, options).Return(nil)
+	cache2.EXPECT().Set("my-key", cacheValue).Return(nil)
 
 	cache := NewChain(cache1, cache2)
 
 	// When
-	err := cache.Set("my-key", cacheValue, options)
+	err := cache.Set("my-key", cacheValue)
 
 	// Then
 	assert.Nil(t, err)
@@ -225,8 +223,6 @@ func TestChainSetWhenErrorOnSetting(t *testing.T) {
 		Hello: "world",
 	}
 
-	options := &store.Options{}
-
 	expectedErr := errors.New("An unexpected error occurred while setting data")
 
 	// Cache 1
@@ -238,7 +234,7 @@ func TestChainSetWhenErrorOnSetting(t *testing.T) {
 
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
 	cache1.EXPECT().GetCodec().Return(codec1)
-	cache1.EXPECT().Set("my-key", cacheValue, options).Return(expectedErr)
+	cache1.EXPECT().Set("my-key", cacheValue).Return(expectedErr)
 
 	// Cache 2
 	cache2 := mocksCache.NewMockSetterCacheInterface(ctrl)
@@ -246,7 +242,7 @@ func TestChainSetWhenErrorOnSetting(t *testing.T) {
 	cache := NewChain(cache1, cache2)
 
 	// When
-	err := cache.Set("my-key", cacheValue, options)
+	err := cache.Set("my-key", cacheValue)
 
 	// Then
 	assert.Error(t, err)
@@ -302,22 +298,19 @@ func TestChainInvalidate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
-
 	// Cache 1
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Invalidate(options).Return(nil)
+	option := store.InvalidateTags("tag1")
+	cache1.EXPECT().Invalidate(mocks.FuncEq(option)).Return(nil)
 
 	// Cache 2
 	cache2 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache2.EXPECT().Invalidate(options).Return(nil)
+	cache2.EXPECT().Invalidate(mocks.FuncEq(option)).Return(nil)
 
 	cache := NewChain(cache1, cache2)
 
 	// When
-	err := cache.Invalidate(options)
+	err := cache.Invalidate(option)
 
 	// Then
 	assert.Nil(t, err)
@@ -328,22 +321,19 @@ func TestChainInvalidateWhenError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
-
 	// Cache 1
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Invalidate(options).Return(errors.New("An unexpected error has occurred while invalidation data"))
+	option := store.InvalidateTags("tag1")
+	cache1.EXPECT().Invalidate(mocks.FuncEq(option)).Return(errors.New("An unexpected error has occurred while invalidation data"))
 
 	// Cache 2
 	cache2 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache2.EXPECT().Invalidate(options).Return(nil)
+	cache2.EXPECT().Invalidate(mocks.FuncEq(option)).Return(nil)
 
 	cache := NewChain(cache1, cache2)
 
 	// When
-	err := cache.Invalidate(options)
+	err := cache.Invalidate(option)
 
 	// Then
 	assert.Nil(t, err)

@@ -2,14 +2,15 @@ package cache
 
 import (
 	"errors"
+	"github.com/fmyxyz/gocache/test/mocks"
 	"testing"
 	"time"
 
-	"github.com/eko/gocache/store"
-	mocksCache "github.com/eko/gocache/test/mocks/cache"
-	mocksCodec "github.com/eko/gocache/test/mocks/codec"
-	mocksMetrics "github.com/eko/gocache/test/mocks/metrics"
-	mocksStore "github.com/eko/gocache/test/mocks/store"
+	"github.com/fmyxyz/gocache/store"
+	mocksCache "github.com/fmyxyz/gocache/test/mocks/cache"
+	mocksCodec "github.com/fmyxyz/gocache/test/mocks/codec"
+	mocksMetrics "github.com/fmyxyz/gocache/test/mocks/metrics"
+	mocksStore "github.com/fmyxyz/gocache/test/mocks/store"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,7 +48,7 @@ func TestMetricGet(t *testing.T) {
 
 	codec1 := mocksCodec.NewMockCodecInterface(ctrl)
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Get("my-key").Return(cacheValue, nil)
+	cache1.EXPECT().Get("my-key").Return(cacheValue)
 	cache1.EXPECT().GetCodec().Return(codec1)
 
 	metrics := mocksMetrics.NewMockMetricsInterface(ctrl)
@@ -111,19 +112,16 @@ func TestMetricSet(t *testing.T) {
 		Hello: "world",
 	}
 
-	options := &store.Options{
-		Expiration: 5 * time.Second,
-	}
-
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Set("my-key", value, options).Return(nil)
+	option := store.Expiration(5 * time.Second)
+	cache1.EXPECT().Set("my-key", value, mocks.FuncEq(option)).Return(nil)
 
 	metrics := mocksMetrics.NewMockMetricsInterface(ctrl)
 
 	cache := NewMetric(metrics, cache1)
 
 	// When
-	err := cache.Set("my-key", value, options)
+	err := cache.Set("my-key", value, option)
 
 	// Then
 	assert.Nil(t, err)
@@ -174,19 +172,17 @@ func TestMetricInvalidate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
+	option := store.InvalidateTags("tag1")
 
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Invalidate(options).Return(nil)
+	cache1.EXPECT().Invalidate(mocks.FuncEq(option)).Return(nil)
 
 	metrics := mocksMetrics.NewMockMetricsInterface(ctrl)
 
 	cache := NewMetric(metrics, cache1)
 
 	// When
-	err := cache.Invalidate(options)
+	err := cache.Invalidate(option)
 
 	// Then
 	assert.Nil(t, err)
@@ -197,21 +193,19 @@ func TestMetricInvalidateWhenError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	options := store.InvalidateOptions{
-		Tags: []string{"tag1"},
-	}
+	option := store.InvalidateTags("tag1")
 
 	expectedErr := errors.New("Unexpected error while invalidating data")
 
 	cache1 := mocksCache.NewMockSetterCacheInterface(ctrl)
-	cache1.EXPECT().Invalidate(options).Return(expectedErr)
+	cache1.EXPECT().Invalidate(mocks.FuncEq(option)).Return(expectedErr)
 
 	metrics := mocksMetrics.NewMockMetricsInterface(ctrl)
 
 	cache := NewMetric(metrics, cache1)
 
 	// When
-	err := cache.Invalidate(options)
+	err := cache.Invalidate(option)
 
 	// Then
 	assert.Equal(t, expectedErr, err)

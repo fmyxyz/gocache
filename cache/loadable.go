@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"github.com/eko/gocache/store"
+	"github.com/fmyxyz/gocache/store"
 )
 
 const (
@@ -64,8 +64,8 @@ func (c *LoadableCache) Get(key interface{}) (interface{}, error) {
 }
 
 // Set sets a value in available caches
-func (c *LoadableCache) Set(key, object interface{}, options *store.Options) error {
-	return c.cache.Set(key, object, options)
+func (c *LoadableCache) Set(key, object interface{}, options ...store.Option) error {
+	return c.cache.Set(key, object, options...)
 }
 
 // Delete removes a value from cache
@@ -74,8 +74,8 @@ func (c *LoadableCache) Delete(key interface{}) error {
 }
 
 // Invalidate invalidates cache item from given options
-func (c *LoadableCache) Invalidate(options store.InvalidateOptions) error {
-	return c.cache.Invalidate(options)
+func (c *LoadableCache) Invalidate(options ...store.InvalidateOption) error {
+	return c.cache.Invalidate(options...)
 }
 
 // Clear resets all cache data

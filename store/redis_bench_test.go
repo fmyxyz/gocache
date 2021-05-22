@@ -20,9 +20,7 @@ func BenchmarkRedisSet(b *testing.B) {
 				key := fmt.Sprintf("test-%d", n)
 				value := []byte(fmt.Sprintf("value-%d", n))
 
-				store.Set(key, value, &Options{
-					Tags: []string{fmt.Sprintf("tag-%d", n)},
-				})
+				store.Set(key, value, Tags(fmt.Sprintf("tag-%d", n)))
 			}
 		})
 	}

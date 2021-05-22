@@ -29,14 +29,15 @@ type RistrettoStore struct {
 }
 
 // NewRistretto creates a new store to Ristretto (memory) library instance
-func NewRistretto(client RistrettoClientInterface, options *Options) *RistrettoStore {
-	if options == nil {
-		options = &Options{}
+func NewRistretto(client RistrettoClientInterface, options ...Option) *RistrettoStore {
+	opts := &Options{}
+	for _, option := range options {
+		option(opts)
 	}
 
 	return &RistrettoStore{
 		client:  client,
-		options: options,
+		options: opts,
 	}
 }
 
@@ -59,11 +60,15 @@ func (s *RistrettoStore) GetWithTTL(key interface{}) (interface{}, time.Duration
 }
 
 // Set defines data in Ristretto memoey cache for given key identifier
-func (s *RistrettoStore) Set(key interface{}, value interface{}, options *Options) error {
+func (s *RistrettoStore) Set(key interface{}, value interface{}, opts ...Option) error {
 	var err error
 
-	if options == nil {
+	options := &Options{}
+	if len(opts) == 0 {
 		options = s.options
+	}
+	for _, opt := range opts {
+		opt(options)
 	}
 
 	if set := s.client.SetWithTTL(key, value, options.CostValue(), options.ExpirationValue()); !set {
@@ -104,9 +109,7 @@ func (s *RistrettoStore) setTags(key interface{}, tags []string) {
 			cacheKeys = append(cacheKeys, key.(string))
 		}
 
-		s.Set(tagKey, []byte(strings.Join(cacheKeys, ",")), &Options{
-			Expiration: 720 * time.Hour,
-		})
+		s.Set(tagKey, []byte(strings.Join(cacheKeys, ",")), Expiration(720*time.Hour))
 	}
 }
 
@@ -116,7 +119,7 @@ func (s *RistrettoStore) Delete(key interface{}) error {
 	return nil
 }
 
-// Invalidate invalidates some cache data in Redis for given options
+// Invalidate invalidates some cache data in Redis for given Options
 func (s *RistrettoStore) Invalidate(options InvalidateOptions) error {
 	if tags := options.TagsValue(); len(tags) > 0 {
 		for _, tag := range tags {

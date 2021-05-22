@@ -1,4 +1,4 @@
-module github.com/eko/gocache
+module github.com/fmyxyz/gocache
 
 go 1.16
 

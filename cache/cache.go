@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/eko/gocache/codec"
-	"github.com/eko/gocache/store"
+	"github.com/fmyxyz/gocache/codec"
+	"github.com/fmyxyz/gocache/store"
 )
 
 const (
@@ -40,9 +40,9 @@ func (c *Cache) GetWithTTL(key interface{}) (interface{}, time.Duration, error) 
 }
 
 // Set populates the cache item using the given key
-func (c *Cache) Set(key, object interface{}, options *store.Options) error {
+func (c *Cache) Set(key, object interface{}, options ...store.Option) error {
 	cacheKey := c.getCacheKey(key)
-	return c.codec.Set(cacheKey, object, options)
+	return c.codec.Set(cacheKey, object, options...)
 }
 
 // Delete removes the cache item using the given key
@@ -52,8 +52,8 @@ func (c *Cache) Delete(key interface{}) error {
 }
 
 // Invalidate invalidates cache item from given options
-func (c *Cache) Invalidate(options store.InvalidateOptions) error {
-	return c.codec.Invalidate(options)
+func (c *Cache) Invalidate(options ...store.InvalidateOption) error {
+	return c.codec.Invalidate(options...)
 }
 
 // Clear resets all cache data

@@ -3,7 +3,7 @@ package codec
 import (
 	"time"
 
-	"github.com/eko/gocache/store"
+	"github.com/fmyxyz/gocache/store"
 )
 
 // Stats allows to returns some statistics of codec usage
@@ -62,8 +62,8 @@ func (c *Codec) GetWithTTL(key interface{}) (interface{}, time.Duration, error) 
 
 // Set allows to set a value for a given key identifier and also allows to specify
 // an expiration time
-func (c *Codec) Set(key interface{}, value interface{}, options *store.Options) error {
-	err := c.store.Set(key, value, options)
+func (c *Codec) Set(key interface{}, value interface{}, options ...store.Option) error {
+	err := c.store.Set(key, value, options...)
 
 	if err == nil {
 		c.stats.SetSuccess++
@@ -88,8 +88,8 @@ func (c *Codec) Delete(key interface{}) error {
 }
 
 // Invalidate invalidates some cach items from given options
-func (c *Codec) Invalidate(options store.InvalidateOptions) error {
-	err := c.store.Invalidate(options)
+func (c *Codec) Invalidate(options ...store.InvalidateOption) error {
+	err := c.store.Invalidate(options...)
 
 	if err == nil {
 		c.stats.InvalidateSuccess++
